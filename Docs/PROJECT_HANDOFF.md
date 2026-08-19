@@ -134,7 +134,7 @@ Generated interactions include:
 Generated trigger and color language:
 
 - **DROP:** shoot the flashing red string; the large container is safety yellow/orange.
-- **PUSH:** shoot the flashing yellow front valve/nozzle on the red seven-part fire-hydrant blockout; its push direction starts at the nozzle and is represented by blue water particles.
+- **PUSH:** shoot any flashing part of the red fire-hydrant blockout. One compound collider encloses all eight visible pieces, the entire assembly pulses as interactable, and its push direction still starts at the front water nozzle with blue water particles.
 - **SHOCK:** shoot the safety-yellow power box. The separate red wire is visual guidance, while the conductive water surface is blue.
 - **EXPLODE:** shoot the red/orange explosive body.
 
@@ -250,6 +250,7 @@ The wall is excluded from the baked surface and contributes only through `NavMes
 - PUSH duration now controls both the blue water effect and sustained repeated pushing. Pushback power is still divided by zombie Rigidbody mass, so Tanks deliberately move less than Normal and Runner zombies.
 - SHOCK damage is intentionally zombie-only; explosive barrels still chain-react to weapons and explosion damage, but never to the electrical zone.
 - Generated hydrant, power-box, wire, water, container, and explosive visuals are readable color-coded primitive blockouts rather than final environment art.
+- Generated PUSH hydrants use one non-trigger compound `BoxCollider` on the `FireHydrant` assembly and eight synchronized highlight overlays. The individual body, rings, dome, caps, and valve have no separate colliders, so every visible part resolves to one activation and the complete collider disables after one-use consumption.
 - Runtime DROP, PUSH-water, and explosive-barrel particle renderers explicitly use the supported `Zombie Prototype/Environmental Particle Unlit` URP shader instead of Unity's pink incompatible fallback material.
 - Newly created weapon-blood and Tank-death particle systems are stopped before their duration modules are configured, avoiding Unity's runtime duration assertion during hits and environmental kills.
 - The active SHOCK field keeps all Velocity over Lifetime axes in Constant curve mode; its Noise module provides movement variation without Unity's mixed-curve-mode particle error.

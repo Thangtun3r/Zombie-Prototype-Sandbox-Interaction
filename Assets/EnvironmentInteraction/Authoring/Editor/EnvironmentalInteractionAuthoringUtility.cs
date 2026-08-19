@@ -23,7 +23,6 @@ namespace EnvironmentInteraction.Authoring.Editor
         private static readonly Color ExplosiveColor = new Color(0.86f, 0.12f, 0.035f, 1f);
         private static readonly Color RedWireColor = new Color(0.88f, 0.025f, 0.015f, 1f);
         private static readonly Color WeakPointRed = new Color(0.92f, 0.035f, 0.02f, 1f);
-        private static readonly Color WeakPointYellow = new Color(1f, 0.72f, 0.05f, 1f);
 
         public static EnvironmentalInteractionBase CreateInteraction(
             EnvironmentalInteractionType type,
@@ -187,7 +186,7 @@ namespace EnvironmentInteraction.Authoring.Editor
 
             PushInteraction interaction = root.AddComponent<PushInteraction>();
             interaction.ConfigureCommon("Push Interaction", trigger);
-            interaction.ConfigureVisuals(hydrantRenderers, HydrantColor, WeakPointYellow);
+            interaction.ConfigureVisuals(hydrantRenderers, HydrantColor, HydrantColor);
             interaction.Configure(waterOrigin, effectZone.transform);
             return interaction;
         }
@@ -289,9 +288,24 @@ namespace EnvironmentInteraction.Authoring.Editor
                     waterOrigin.parent.gameObject,
                     "Upgrade PUSH Fire Hydrant");
                 interaction.SetTrigger(newTrigger);
-                interaction.ConfigureVisuals(renderers, HydrantColor, WeakPointYellow);
+                interaction.ConfigureVisuals(renderers, HydrantColor, HydrantColor);
                 push.Configure(waterOrigin, push.EffectZone);
                 Undo.DestroyObjectImmediate(oldSource);
+                EditorUtility.SetDirty(interaction);
+                return true;
+            }
+
+            if (interaction is PushInteraction generatedPush &&
+                generatedPush.PushOrigin != null &&
+                generatedPush.PushOrigin.parent != null &&
+                generatedPush.PushOrigin.parent.name == "FireHydrant")
+            {
+                GameObject hydrant = generatedPush.PushOrigin.parent.gameObject;
+                Renderer[] renderers = GetHydrantVisualRenderers(hydrant);
+                EnvironmentalTrigger wholeHydrantTrigger =
+                    EnsureWholeHydrantTrigger(hydrant, renderers);
+                interaction.SetTrigger(wholeHydrantTrigger);
+                interaction.ConfigureVisuals(renderers, HydrantColor, HydrantColor);
                 EditorUtility.SetDirty(interaction);
                 return true;
             }
@@ -510,13 +524,13 @@ namespace EnvironmentInteraction.Authoring.Editor
                 new Vector3(0.55f, 0.92f, 0f),
                 new Vector3(0.28f, 0.16f, 0.28f),
                 Quaternion.Euler(0f, 0f, 90f));
-            GameObject triggerValve = CreatePrimitive(
+            GameObject triggerValve = CreateVisualPrimitive(
                 "TriggerValve",
                 PrimitiveType.Cylinder,
                 hydrant.transform,
                 new Vector3(0f, 0.92f, 0.55f),
-                new Vector3(0.28f, 0.16f, 0.28f));
-            triggerValve.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                new Vector3(0.28f, 0.16f, 0.28f),
+                Quaternion.Euler(90f, 0f, 0f));
             GameObject nozzle = CreateEmpty(
                 "WaterNozzle",
                 hydrant.transform,
@@ -530,12 +544,112 @@ namespace EnvironmentInteraction.Authoring.Editor
                 dome.GetComponent<Renderer>(),
                 topCap.GetComponent<Renderer>(),
                 leftCap.GetComponent<Renderer>(),
-                rightCap.GetComponent<Renderer>()
+                rightCap.GetComponent<Renderer>(),
+                triggerValve.GetComponent<Renderer>()
             };
             EnvironmentalVisualUtility.ApplyColor(coloredRenderers, HydrantColor);
-            EnvironmentalTrigger trigger = EnsureTriggerSetup(triggerValve);
-            trigger.ApplyVisualColor(WeakPointYellow);
-            return trigger;
+            return EnsureWholeHydrantTrigger(hydrant, coloredRenderers);
+        }
+
+        private static Renderer[] GetHydrantVisualRenderers(GameObject hydrant)
+        {
+            return hydrant.GetComponentsInChildren<Renderer>(true)
+                .Where(renderer => renderer != null && renderer.gameObject.name != "InteractableHighlightOverlay")
+                .ToArray();
+        }
+
+        private static EnvironmentalTrigger EnsureWholeHydrantTrigger(
+            GameObject hydrant,
+            Renderer[] visualRenderers)
+        {
+            EnvironmentalTrigger rootTrigger = hydrant.GetComponent<EnvironmentalTrigger>();
+            foreach (EnvironmentalTrigger oldTrigger in
+                     hydrant.GetComponentsInChildren<EnvironmentalTrigger>(true))
+            {
+                if (oldTrigger == null || oldTrigger == rootTrigger)
+                    continue;
+
+                EnvironmentalInteractableHighlight oldHighlight = oldTrigger.InteractableHighlight;
+                oldTrigger.SetHighlightVisible(false);
+                if (oldHighlight != null)
+                    Undo.DestroyObjectImmediate(oldHighlight);
+                Undo.DestroyObjectImmediate(oldTrigger);
+            }
+
+            BoxCollider wholeCollider = hydrant.GetComponent<BoxCollider>();
+            if (wholeCollider == null)
+                wholeCollider = Undo.AddComponent<BoxCollider>(hydrant);
+            foreach (Collider collider in hydrant.GetComponentsInChildren<Collider>(true))
+            {
+                if (collider != null && collider != wholeCollider)
+                    Undo.DestroyObjectImmediate(collider);
+            }
+            ConfigureCompoundCollider(wholeCollider, hydrant.transform, visualRenderers);
+            wholeCollider.isTrigger = false;
+
+            if (rootTrigger == null)
+                rootTrigger = Undo.AddComponent<EnvironmentalTrigger>(hydrant);
+            EnvironmentalInteractableHighlight highlight =
+                hydrant.GetComponent<EnvironmentalInteractableHighlight>();
+            if (highlight == null)
+                highlight = Undo.AddComponent<EnvironmentalInteractableHighlight>(hydrant);
+
+            Renderer[] overlays = visualRenderers
+                .Select(EnsureHighlightOverlay)
+                .Where(renderer => renderer != null)
+                .ToArray();
+            highlight.Configure(overlays, GetOrCreateHighlightMaterial());
+            rootTrigger.Configure(
+                hydrant.transform,
+                wholeCollider,
+                visualRenderers.FirstOrDefault(),
+                highlight);
+
+            EditorUtility.SetDirty(wholeCollider);
+            EditorUtility.SetDirty(rootTrigger);
+            EditorUtility.SetDirty(highlight);
+            return rootTrigger;
+        }
+
+        private static void ConfigureCompoundCollider(
+            BoxCollider collider,
+            Transform root,
+            Renderer[] renderers)
+        {
+            bool hasPoint = false;
+            Bounds localBounds = default;
+            foreach (Renderer renderer in renderers)
+            {
+                if (renderer == null)
+                    continue;
+
+                Bounds worldBounds = renderer.bounds;
+                Vector3 center = worldBounds.center;
+                Vector3 extents = worldBounds.extents;
+                for (int x = -1; x <= 1; x += 2)
+                for (int y = -1; y <= 1; y += 2)
+                for (int z = -1; z <= 1; z += 2)
+                {
+                    Vector3 worldPoint = center + Vector3.Scale(
+                        extents,
+                        new Vector3(x, y, z));
+                    Vector3 localPoint = root.InverseTransformPoint(worldPoint);
+                    if (!hasPoint)
+                    {
+                        localBounds = new Bounds(localPoint, Vector3.zero);
+                        hasPoint = true;
+                    }
+                    else
+                    {
+                        localBounds.Encapsulate(localPoint);
+                    }
+                }
+            }
+
+            collider.center = hasPoint ? localBounds.center : Vector3.up;
+            collider.size = hasPoint
+                ? localBounds.size + Vector3.one * 0.04f
+                : new Vector3(1.5f, 2f, 1.5f);
         }
 
         private static GameObject CreatePrimitive(

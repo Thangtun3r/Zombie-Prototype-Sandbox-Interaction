@@ -237,3 +237,9 @@ Entries below occurred on 2026-08-20.
 
 - Removed the PUSH ragdoll/knockdown path after playtest feedback. Hydrant water now uses the existing `ZombieMovement.ApplyKnockback` behavior exclusively, keeping zombies upright, alive, and NavMesh-controlled.
 - Removed PUSH knockdown, upward-force, topple-force, and get-up-delay fields from the runtime component, shared global profile, selected-object Inspector, and global tuning window. EXPLODE keeps its independent lethal ragdoll controls and behavior.
+
+## Whole-hydrant interaction target
+
+- Replaced the front-valve-only PUSH trigger with one compound collider on the complete `FireHydrant` assembly. Shooting the body, base ring, collar, dome, top cap, either side cap, or front valve now activates the same PUSH interaction.
+- Added synchronized pulse overlays to all eight visible hydrant pieces and removed the old valve-only collider/component, preserving one-use consumption through a single centralized `EnvironmentalTrigger`.
+- Migrated and saved `ENV_Push_001`, then verified both it and a newly generated PUSH use one non-trigger root collider, eight visible pieces, eight overlays, and a correctly bound owner.

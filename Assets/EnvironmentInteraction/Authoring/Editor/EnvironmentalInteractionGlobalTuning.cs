@@ -42,7 +42,7 @@ namespace EnvironmentInteraction.Authoring.Editor
             [Min(0f)] public float forceValue = 18f;
             public LayerMask affectedLayers = ~0;
             public Color objectColor = new Color(0.78f, 0.04f, 0.025f, 1f);
-            public Color triggerColor = new Color(1f, 0.72f, 0.05f, 1f);
+            public Color triggerColor = new Color(0.78f, 0.04f, 0.025f, 1f);
             public bool spawnWaterParticles = true;
             public Color waterColor = new Color(0.08f, 0.48f, 1f, 0.9f);
             [Min(0.1f)] public float waterParticleAmount = 1f;

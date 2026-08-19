@@ -266,7 +266,7 @@ namespace EnvironmentInteraction.Authoring.Editor
                 case EnvironmentalInteractionType.Drop:
                     return "Shoot the flashing red string above the container.";
                 case EnvironmentalInteractionType.Push:
-                    return "Shoot the flashing front valve/nozzle on the fire hydrant.";
+                    return "Shoot any flashing part of the fire hydrant.";
                 case EnvironmentalInteractionType.Shock:
                     return "Shoot the flashing power box. The red wire is visual guidance, not the trigger.";
                 default:

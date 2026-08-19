@@ -44,7 +44,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     objectColor: {r: 0.78, g: 0.04, b: 0.025, a: 1}
-    triggerColor: {r: 1, g: 0.72, b: 0.05, a: 1}
+    triggerColor: {r: 0.78, g: 0.04, b: 0.025, a: 1}
     spawnWaterParticles: 1
     waterColor: {r: 0.08, g: 0.48, b: 1, a: 0.9}
     waterParticleAmount: 1
