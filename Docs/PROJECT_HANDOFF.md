@@ -85,7 +85,7 @@ Every zombie prefab shares the same small runtime components:
 | Runner | 45 | 4.5 | 8 | 0.65 s | 0.75 | 0.20 s | None |
 | Tank | 300 | 0.9 | 25 | 1.4 s | 3.5 | 0.08 s | 4 m radius, 45 damage, 4.5 force |
 
-The Tank's death event damages and knocks back nearby `IDamageable` targets. It spawns particles, a point-light flash, and a translucent sphere that expands to the exact damage radius before fading. Damage can synchronously trigger another Tank death, so chain explosions are possible.
+The Tank's death event damages and knocks back nearby `IDamageable` targets except `ExplosiveBarrel`. It spawns particles, a point-light flash, and a translucent sphere that expands to the exact damage radius before fading. Damage can synchronously trigger another Tank death, so Tank-to-Tank chain explosions remain possible, but Tank deaths never damage or detonate barrels.
 
 ## Environment interactions
 
@@ -95,6 +95,7 @@ The first reusable interaction is `ExplosiveBarrel`:
 - Starts at 20 health; current starting balance is a 5 m radius, 125 damage, and 8 knockback force.
 - Deduplicates overlapping colliders so each target is damaged and pushed once per blast.
 - Damages and knocks back zombies, chain-reacts with other barrels, and displays particles, a light flash, and an expanding sphere matched to the damage radius.
+- Barrel chain reactions can still start from weapons, other barrels, and environmental explosion damage; Tank death explosions explicitly ignore barrels.
 - Calls `IExplosionBreakable` on marked objects in range.
 - Blood particles are now limited to zombie hits; environment hits still use normal hitmarker and floating-damage feedback.
 
@@ -244,6 +245,7 @@ The wall is excluded from the baked surface and contributes only through `NavMes
 - Knockback is applied through temporary `NavMeshAgent.Move` displacement, so it stays constrained to navigable space rather than behaving as unconstrained Rigidbody physics.
 - Standard health death still deactivates the zombie GameObject. Environmental EXPLODE death deliberately keeps it active as a physics corpse, then destroys it after the global corpse delay. PUSH is nonlethal normal NavMesh knockback and never creates an environmental ragdoll.
 - The Tank radius sphere is a runtime effect, not a persistent scene gizmo.
+- Tank death explosions skip `ExplosiveBarrel` before applying either damage or Rigidbody force, preventing Tank-to-barrel chain reactions without changing normal barrel chaining.
 - The barrel is intentionally simple: its balance lives on the prefab component rather than a separate tuning profile until more interaction types justify shared data tooling.
 - The breakable wall response is a prototype whole-object throw/remove effect, not a fragment or destruction system.
 - DROP/PUSH/SHOCK/EXPLODE now perform simple prototype runtime effects, but their values and feel have not been user-validated and are not final gameplay implementations.

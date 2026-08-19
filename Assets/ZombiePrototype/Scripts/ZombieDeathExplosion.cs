@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using EnvironmentInteraction;
 using UnityEngine;
 
 namespace ZombiePrototype
@@ -59,6 +60,8 @@ namespace ZombiePrototype
                 IDamageable damageable = targetCollider.GetComponentInParent<IDamageable>();
                 if (!(damageable is Component damageableComponent))
                     continue;
+                if (ShouldIgnoreDamageTarget(damageableComponent))
+                    continue;
 
                 int targetId = damageableComponent.gameObject.GetInstanceID();
                 if (targetId == gameObject.GetInstanceID() || !affected.Add(targetId))
@@ -80,6 +83,11 @@ namespace ZombiePrototype
             }
 
             SpawnExplosionEffect(center);
+        }
+
+        private static bool ShouldIgnoreDamageTarget(Component target)
+        {
+            return target != null && target.GetComponentInParent<ExplosiveBarrel>() != null;
         }
 
         private void SpawnExplosionEffect(Vector3 position)

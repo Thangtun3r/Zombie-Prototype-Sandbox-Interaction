@@ -243,3 +243,8 @@ Entries below occurred on 2026-08-20.
 - Replaced the front-valve-only PUSH trigger with one compound collider on the complete `FireHydrant` assembly. Shooting the body, base ring, collar, dome, top cap, either side cap, or front valve now activates the same PUSH interaction.
 - Added synchronized pulse overlays to all eight visible hydrant pieces and removed the old valve-only collider/component, preserving one-use consumption through a single centralized `EnvironmentalTrigger`.
 - Migrated and saved `ENV_Push_001`, then verified both it and a newly generated PUSH use one non-trigger root collider, eight visible pieces, eight overlays, and a correctly bound owner.
+
+## Tank explosion barrel isolation
+
+- Excluded `ExplosiveBarrel` components from `ZombieDeathExplosion` before Tank blast knockback or damage is applied. A dying Tank can no longer reduce barrel health or trigger a barrel chain reaction.
+- Preserved Tank-to-zombie and Tank-to-Tank damage, as well as weapon, barrel, and authored environmental explosion interactions with barrels.
