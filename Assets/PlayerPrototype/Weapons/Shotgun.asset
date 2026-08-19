@@ -18,9 +18,9 @@ MonoBehaviour:
   damagePerPellet: 20
   fireRate: 1.15
   range: 35
-  knockbackImpulse: 30
+  knockbackImpulse: 100
   pelletCount: 8
-  spreadAngle: 20
+  spreadAngle: 10
   headshotMultiplier: 1.5
   automatic: 0
   magazineSize: 6
