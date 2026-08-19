@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: AK-47
   sortOrder: 2
   editorColor: {r: 0.78, g: 0.2, b: 0.1, a: 1}
-  damagePerPellet: 18
+  damagePerPellet: 25
   fireRate: 10
   range: 80
   knockbackImpulse: 2.2

@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Shotgun
   sortOrder: 1
   editorColor: {r: 1, g: 0.48, b: 0.1, a: 1}
-  damagePerPellet: 13
+  damagePerPellet: 20
   fireRate: 1.15
   range: 35
   knockbackImpulse: 30
