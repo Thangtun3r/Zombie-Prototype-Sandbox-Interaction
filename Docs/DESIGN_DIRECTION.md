@@ -41,6 +41,21 @@ Control where the horde can move. BLOCK can create accumulation, funnels, compre
 
 Possible implementations include a crate, gate, or falling container. Timing should trade immediate safety against a potentially larger later payoff.
 
+## Current environmental opportunity authoring vocabulary
+
+By explicit direction on 2026-08-19, the designer-facing placement tool exposes exactly these four concrete opportunity types:
+
+```text
+DROP
+PUSH
+SHOCK
+EXPLODE
+```
+
+These labels describe what a level designer places and previews: a physical shootable trigger, an effect source/object, and an affected area. By explicit follow-up direction on 2026-08-20, each type also has a small weapon-triggered prototype effect for playtesting. These effects do not add encounter choreography or puzzle sequencing and should not be treated as final balance or simulation.
+
+The earlier MOVE/SLOW/BLOCK model remains useful as a higher-level way to reason about horde manipulation: PUSH is a direct MOVE implementation, SHOCK may eventually create a SLOW payoff, while DROP and EXPLODE are concrete authored payoff opportunities. Do not use that mapping to merge the four authoring types or expand the tool with more types without explicit direction.
+
 ## Outcomes and payoffs are not automatically new verbs
 
 - Push and redirect remain variations of MOVE.

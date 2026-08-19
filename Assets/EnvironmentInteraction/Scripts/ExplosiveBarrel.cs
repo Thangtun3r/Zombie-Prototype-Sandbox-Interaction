@@ -138,6 +138,7 @@ namespace EnvironmentInteraction
             GameObject effect = new GameObject("Barrel Explosion Particles");
             effect.transform.position = center;
             ParticleSystem particles = effect.AddComponent<ParticleSystem>();
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
             ParticleSystem.MainModule main = particles.main;
             main.duration = 0.5f;
@@ -159,6 +160,7 @@ namespace EnvironmentInteraction
             ParticleSystem.ShapeModule shape = particles.shape;
             shape.shapeType = ParticleSystemShapeType.Sphere;
             shape.radius = 0.3f;
+            Authoring.EnvironmentalRuntimeEffects.ConfigureParticleRenderer(particles, 1.2f);
             particles.Play();
         }
 

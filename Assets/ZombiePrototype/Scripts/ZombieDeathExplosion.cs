@@ -90,6 +90,7 @@ namespace ZombiePrototype
             effect.transform.position = position;
 
             ParticleSystem particles = effect.AddComponent<ParticleSystem>();
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             ParticleSystem.MainModule main = particles.main;
             main.duration = 0.25f;
             main.loop = false;

@@ -101,6 +101,18 @@ namespace ZombiePrototype
             }
         }
 
+        public void StopImmediately()
+        {
+            knockbackVelocity = Vector3.zero;
+            resumeMovementTime = Time.time;
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+            {
+                agent.ResetPath();
+                agent.velocity = Vector3.zero;
+                agent.isStopped = true;
+            }
+        }
+
         private void ConfigureAgent()
         {
             float scale = Mathf.Max(0.1f, transform.lossyScale.x);

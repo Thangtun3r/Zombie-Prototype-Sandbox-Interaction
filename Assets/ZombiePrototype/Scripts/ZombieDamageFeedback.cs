@@ -20,19 +20,20 @@ namespace ZombiePrototype
 
         private void Awake()
         {
-            health = GetComponent<ZombieHealth>();
-            renderers = GetComponentsInChildren<Renderer>(true);
-            propertyBlock = new MaterialPropertyBlock();
+            EnsureInitialized();
         }
 
         private void OnEnable()
         {
-            health.Damaged += HandleDamaged;
+            EnsureInitialized();
+            if (health != null)
+                health.Damaged += HandleDamaged;
         }
 
         private void OnDisable()
         {
-            health.Damaged -= HandleDamaged;
+            if (health != null)
+                health.Damaged -= HandleDamaged;
             ClearFlash();
         }
 
@@ -53,14 +54,27 @@ namespace ZombiePrototype
 
         private void SetFlash(Color color)
         {
+            EnsureInitialized();
             foreach (Renderer targetRenderer in renderers)
             {
+                if (targetRenderer == null)
+                    continue;
                 targetRenderer.GetPropertyBlock(propertyBlock);
                 propertyBlock.SetColor(BaseColorId, color);
                 propertyBlock.SetColor(ColorId, color);
                 targetRenderer.SetPropertyBlock(propertyBlock);
                 propertyBlock.Clear();
             }
+        }
+
+        private void EnsureInitialized()
+        {
+            if (health == null)
+                health = GetComponent<ZombieHealth>();
+            if (renderers == null || renderers.Length == 0)
+                renderers = GetComponentsInChildren<Renderer>(true);
+            if (propertyBlock == null)
+                propertyBlock = new MaterialPropertyBlock();
         }
 
         private void ClearFlash()

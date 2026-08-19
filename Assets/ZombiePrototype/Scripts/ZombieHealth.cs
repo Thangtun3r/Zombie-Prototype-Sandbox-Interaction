@@ -40,10 +40,32 @@ namespace ZombiePrototype
             if (currentHealth > 0f)
                 return;
 
+            CompleteDeath(true);
+        }
+
+        public bool Kill(bool deactivateGameObject = true)
+        {
+            if (IsDead)
+                return false;
+
+            float appliedDamage = currentHealth;
+            currentHealth = 0f;
+            if (appliedDamage > 0f)
+                Damaged?.Invoke(appliedDamage);
+            CompleteDeath(deactivateGameObject);
+            return true;
+        }
+
+        private void CompleteDeath(bool deactivateGameObject)
+        {
+            if (IsDead)
+                return;
+
             IsDead = true;
             Died?.Invoke();
             onDied?.Invoke();
-            gameObject.SetActive(false);
+            if (deactivateGameObject)
+                gameObject.SetActive(false);
         }
     }
 }

@@ -548,6 +548,7 @@ namespace PlayerPrototype
             bloodObject.transform.rotation = Quaternion.LookRotation(surfaceNormal);
 
             ParticleSystem particles = bloodObject.AddComponent<ParticleSystem>();
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             ParticleSystem.MainModule main = particles.main;
             main.duration = 0.12f;
             main.loop = false;

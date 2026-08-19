@@ -1,6 +1,6 @@
 # Project Handoff
 
-Last updated: 2026-08-19
+Last updated: 2026-08-20
 
 ## Current prototype state
 
@@ -14,6 +14,7 @@ Current deliberate scope:
 - Zombies use baked NavMesh paths toward the main camera and can reroute around carved dynamic obstacles.
 - Simple hitscan combat, feedback, modular zombie prefabs, and editor painting tools.
 - A first modular environment interaction is implemented: shootable explosive barrels that affect zombies and break marked dynamic obstacles.
+- A designer-facing environmental opportunity tool supports exactly DROP, PUSH, SHOCK, and EXPLODE; its physical triggers now connect to the existing weapon damage contract and run small one-use prototype effects.
 - The user performs all gameplay playtesting and provides balance/feel feedback.
 
 Do not enter Play Mode unless the user explicitly asks. Compiler checks, asset inspection, and serialized-reference checks are appropriate.
@@ -101,6 +102,52 @@ The blue wall's saved `DynamicNavMeshTestBlock` implements `IExplosionBreakable`
 
 `SampleScene` includes one test barrel at `(0, 0, -3.6)`, between the camera and the dynamic wall.
 
+## Environmental opportunity authoring
+
+Open **Tools → Level Design → Environmental Interaction Tool**.
+
+Open **Tools → Level Design → Environmental Interaction Tuning** (or click **Open Scene-Wide Tuning** in the creation tool) to edit the shared project-wide profile. Every change is immediately copied to all matching opportunities in every open scene, and newly created opportunities inherit the same values. The button at the top can explicitly reapply the entire profile to all current objects; selected-object Inspectors remain available for intentional local overrides.
+
+The tuning window exposes:
+
+- **DROP:** trigger delay, fall time, smash area, damage, knockback, and impact-particle feedback.
+- **PUSH:** sustained water/push duration, reach, affected width/height, pushback power, and water feedback.
+- **SHOCK:** activation delay, total duration, pulse interval, affected area, damage per pulse, zombie speed multiplier down to a complete `0%` stop, active-zone electricity, enemy taze particles, and shake strength/speed.
+- **EXPLODE:** delay, blast radius, full-damage radius, damage, knockback power, enemy ragdoll launch/tumble, and corpse visibility time.
+
+This independent authoring workflow exposes exactly four placement choices: **DROP**, **PUSH**, **SHOCK**, and **EXPLODE**. Each generated root is placed at the current Scene View pivot, receives a unique `ENV_<Type>_###` name, and keeps the physical shootable trigger separate from the effect object/origin and affected area.
+
+Generated interactions include:
+
+- Shared serialized ID, display name, enabled state, one-use flag, trigger reference, visualization preferences, and designer notes.
+- Focused type components (`DropInteraction`, `PushInteraction`, `ShockInteraction`, and `ExplodeInteraction`) rather than one component containing every type's fields.
+- A physical `EnvironmentalTrigger` with collider and visual references. It implements `IDamageable`, so any positive pistol, shotgun, or AK-47 hit asks its owning interaction to activate.
+- A reusable `EnvironmentalInteractableHighlight` driving a subtle transparent overlay with the lightweight `Zombie Prototype/Environmental Interactable Pulse` URP shader. Only the assigned shootable overlay pulses from a cool cyan base toward warm amber; both colors, opacity, flash amount/speed, emission, material, and editor/game visibility remain designer-tunable.
+- A shared **Appearance — Color Coding** Inspector section exposes the colored renderers, object color, and shootable-part color for every opportunity. Type-specific effect colors and particle amounts remain alongside their gameplay tuning.
+- Clear selected-object Scene visualization and labels for trigger/effect relationships, trajectories, directions, volumes, and radii.
+- Direct Scene handles for DROP smash-area size, PUSH direction/range/width, SHOCK area size, and EXPLODE inner/outer radii.
+- Collider-free translucent edit-mode geometry previews for all four interaction types. Their box/sphere shape and world dimensions synchronize with the gameplay area after global-profile changes, selected-object Inspector edits, and direct Scene-handle edits; they are hidden during Play Mode and remain separate from runtime activation.
+- SHOCK's visible blue conductive-surface footprint also follows its authored box size or sphere diameter, while the translucent volume shows the full vertical extent used by overlap checks.
+- Placeholder blockout geometry that can be replaced or reassigned to existing scene objects. The custom Inspector can convert any assigned scene object into a collider-backed highlighted trigger.
+- The generated DROP blockout uses a large hanging container with its thin shootable string directly above the container. For box-shaped DROP opportunities, the global/Inspector/Scene-handle smash size also resizes the generated container to the exact same world dimensions and repositions the string above it. DROP has no authored travel-distance limit: it searches straight down for the first valid solid floor and offsets the resized container so its bottom lands on that surface.
+
+Generated trigger and color language:
+
+- **DROP:** shoot the flashing red string; the large container is safety yellow/orange.
+- **PUSH:** shoot the flashing yellow front valve/nozzle on the red seven-part fire-hydrant blockout; its push direction starts at the nozzle and is represented by blue water particles.
+- **SHOCK:** shoot the safety-yellow power box. The separate red wire is visual guidance, while the conductive water surface is blue.
+- **EXPLODE:** shoot the red/orange explosive body.
+
+Runtime activation is deliberately small and deterministic:
+
+- Shared activation is one-use by default. On activation the trigger stops flashing, its shootable collider is disabled, `On Activated` is invoked, and the focused effect runs. `On Effect Completed` is available for later sequencing without coupling the tool to an encounter manager.
+- **DROP** waits for its delay, resolves the floor beneath the container with an unlimited downward query, moves the object until its bottom reaches that floor, then applies smash damage and force. The hanging container has a disabled box `NavMeshObstacle`; after landing it enables stationary carving at the container's exact collider size, so zombies dynamically route around the new blockage without a NavMesh rebake. Generated DROP interactions use a container-sized box area and 500 starting damage, enough to crush every current zombie archetype caught underneath. An optional self-cleaning impact effect emits broad dust puffs and faster debris chips around the authored smash footprint.
+- **PUSH** repeatedly applies ordinary directional knockback for the full sustained duration. Zombies remain upright, alive, and under `ZombieMovement`/NavMesh control while sliding in the authored hydrant direction; they never enter the environmental ragdoll component. Non-kinematic props still receive physical force, and the blue water jet uses the same active duration. Global starting balance is 1.25 seconds, 8 m reach, a 4 × 2.5 m cross-section, and 18 push power.
+- **SHOCK** targets `ZombieHealth`/`ZombieMovement` only, so its electrical zone cannot damage or chain-trigger explosive barrels or other generic `IDamageable` props. As soon as the activation delay ends, blue electrical particles cover the authored sphere/box for the entire active duration even when no enemy is inside. Zombies inside receive repeated damage, a globally defaulted `0` movement multiplier that immediately clears navigation velocity and pending knockback for a complete stop, attached taze particles, and a small visual-body shake. The shake deliberately leaves the NavMesh root and headshot collider untouched.
+- **EXPLODE** still applies inner-to-outer damage falloff to non-zombie damageables and blows physical props outward. Zombies use the enabled-by-default environmental ragdoll response and are killed visibly, launched radially with upward force and tumble, then removed after the corpse delay. Global ragdoll starting balance is 6 upward force, 12 tumble torque, and 3 seconds visible.
+
+These are prototype gameplay effects, not final skeletal ragdolls, electricity propagation, VFX, sound, encounter choreography, or puzzle logic. The earlier `ExplosiveBarrel` remains a separate live prefab interaction.
+
 ## Editor tools
 
 ### Zombie Painter
@@ -166,6 +213,15 @@ The wall is excluded from the baked surface and contributes only through `NavMes
 | Environment interaction catalog | `Assets/EnvironmentInteraction/Catalog` |
 | Environment interaction runtime scripts | `Assets/EnvironmentInteraction/Scripts` |
 | Environment Interaction Painter | `Assets/EnvironmentInteraction/Editor/EnvironmentInteractionPainterWindow.cs` |
+| Four-type opportunity authoring runtime | `Assets/EnvironmentInteraction/Authoring/Runtime` |
+| Runtime enemy taze feedback | `Assets/EnvironmentInteraction/Authoring/Runtime/EnvironmentalTazeFeedback.cs` |
+| Runtime environmental zombie ragdoll | `Assets/EnvironmentInteraction/Authoring/Runtime/EnvironmentalZombieRagdoll.cs` |
+| Environmental Interaction Tool and handles | `Assets/EnvironmentInteraction/Authoring/Editor` |
+| Scene-wide environment tuning window | `Assets/EnvironmentInteraction/Authoring/Editor/EnvironmentalInteractionTuningWindow.cs` |
+| Global environment tuning profile | `Assets/EnvironmentInteraction/Authoring/Settings/EnvironmentalInteractionGlobalTuning.asset` |
+| Shared interactable highlight material | `Assets/EnvironmentInteraction/Authoring/Materials/EnvironmentalInteractableHighlight.mat` |
+| Interactable flashing shader | `Assets/EnvironmentInteraction/Authoring/Shaders/EnvironmentalInteractablePulse.shader` |
+| URP environment particle shader | `Assets/EnvironmentInteraction/Authoring/Shaders/EnvironmentalParticleUnlit.shader` |
 
 ## Architectural rules for continuation
 
@@ -177,7 +233,8 @@ The wall is excluded from the baked surface and contributes only through `NavMes
 - Add focused components instead of a single large zombie manager.
 - Keep the prototype easy to reset and inspect.
 - Do not add rail movement or free movement until requested.
-- Preserve the MOVE/SLOW/BLOCK design hypothesis and add one testable environment interaction at a time.
+- Keep the opportunity authoring tool limited to DROP/PUSH/SHOCK/EXPLODE unless the user explicitly changes that set.
+- Keep the focused prototype effects small and profile-like; do not infer encounter scripting or puzzle solutions from authored opportunities. The earlier MOVE/SLOW/BLOCK model remains a higher-level design lens documented in `DESIGN_DIRECTION.md`.
 
 ## Known caveats
 
@@ -185,10 +242,19 @@ The wall is excluded from the baked surface and contributes only through `NavMes
 - The player currently has no movement and no implemented player-health loop.
 - Zombie navigation now uses `NavMeshAgent` with low-quality local avoidance and destinations refreshed every 0.25 seconds. Rigidbody components are kinematic and retained for mass/collider data.
 - Knockback is applied through temporary `NavMeshAgent.Move` displacement, so it stays constrained to navigable space rather than behaving as unconstrained Rigidbody physics.
-- Death currently deactivates the zombie GameObject; pooling/reset behavior is not yet generalized.
+- Standard health death still deactivates the zombie GameObject. Environmental EXPLODE death deliberately keeps it active as a physics corpse, then destroys it after the global corpse delay. PUSH is nonlethal normal NavMesh knockback and never creates an environmental ragdoll.
 - The Tank radius sphere is a runtime effect, not a persistent scene gizmo.
 - The barrel is intentionally simple: its balance lives on the prefab component rather than a separate tuning profile until more interaction types justify shared data tooling.
 - The breakable wall response is a prototype whole-object throw/remove effect, not a fragment or destruction system.
+- DROP/PUSH/SHOCK/EXPLODE now perform simple prototype runtime effects, but their values and feel have not been user-validated and are not final gameplay implementations.
+- PUSH duration now controls both the blue water effect and sustained repeated pushing. Pushback power is still divided by zombie Rigidbody mass, so Tanks deliberately move less than Normal and Runner zombies.
+- SHOCK damage is intentionally zombie-only; explosive barrels still chain-react to weapons and explosion damage, but never to the electrical zone.
+- Generated hydrant, power-box, wire, water, container, and explosive visuals are readable color-coded primitive blockouts rather than final environment art.
+- Runtime DROP, PUSH-water, and explosive-barrel particle renderers explicitly use the supported `Zombie Prototype/Environmental Particle Unlit` URP shader instead of Unity's pink incompatible fallback material.
+- Newly created weapon-blood and Tank-death particle systems are stopped before their duration modules are configured, avoiding Unity's runtime duration assertion during hits and environmental kills.
+- The active SHOCK field keeps all Velocity over Lifetime axes in Constant curve mode; its Noise module provides movement variation without Unity's mixed-curve-mode particle error.
+- The flashing weak-point treatment uses a second, slightly enlarged mesh renderer. Existing objects without a `MeshFilter` or `SkinnedMeshRenderer` need a manually assigned overlay renderer.
+- Duplicating a generated hierarchy correctly remaps its local trigger/effect references, but the duplicated root retains the copied interaction ID until the designer uses **Regenerate** in its Inspector.
 - The Unity MCP package reports the project-path space as an error-level warning. This is unrelated to C# compilation.
 - No gameplay feel or balance values have been independently validated; all listed numbers are starting points awaiting user feedback.
 

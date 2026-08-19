@@ -17,7 +17,7 @@ MonoBehaviour:
   editorColor: {r: 1, g: 0.58, b: 0.1, a: 1}
   prefab: {fileID: 8199390179567065926, guid: ca3015e4747b24441b64515253c23d65, type: 3}
   health: 45
-  moveSpeed: 4.5
+  moveSpeed: 10
   attackDamage: 8
   attackCooldown: 0.65
   bodyMass: 0.75
