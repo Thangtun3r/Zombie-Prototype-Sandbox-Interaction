@@ -24,6 +24,6 @@ MonoBehaviour:
   knockbackDuration: 0.08
   explodesOnDeath: 1
   explosionRadius: 4
-  explosionDamage: 45
-  explosionForce: 4.5
+  explosionDamage: 131.81
+  explosionForce: 11.6
   explosionMaterial: {fileID: 2100000, guid: 3c0f5bfa45908a84fa981c94fd5deee5, type: 2}
