@@ -248,3 +248,8 @@ Entries below occurred on 2026-08-20.
 
 - Excluded `ExplosiveBarrel` components from `ZombieDeathExplosion` before Tank blast knockback or damage is applied. A dying Tank can no longer reduce barrel health or trigger a barrel chain reaction.
 - Preserved Tank-to-zombie and Tank-to-Tank damage, as well as weapon, barrel, and authored environmental explosion interactions with barrels.
+
+## Forward-leading DROP and larger shootable string
+
+- Added a globally tunable DROP forward lead distance, starting at 1.5 m. The container now travels diagonally toward the authored forward direction and resolves its floor/impact zone at the led destination, giving the player more timing tolerance against a moving horde.
+- Enlarged generated DROP string colliders to three times their previous radius and height without changing the thin visible string. Migrated the current `ENV_Drop_001` trigger and applied the new lead value in `SampleScene`.

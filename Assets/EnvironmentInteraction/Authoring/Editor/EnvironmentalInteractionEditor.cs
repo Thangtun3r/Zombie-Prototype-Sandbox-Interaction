@@ -172,11 +172,12 @@ namespace EnvironmentInteraction.Authoring.Editor
             {
                 DrawProperty("dropObject", "Drop Object");
                 EditorGUILayout.HelpBox(
-                    "DROP searches straight down without a distance limit and lands on the first solid floor in Floor Layers.",
+                    "DROP leads forward by the authored distance, then searches straight down without a distance limit for the first solid floor in Floor Layers.",
                     MessageType.Info);
                 DrawProperty("floorLayers", "Floor Layers");
                 DrawProperty("surfaceClearance", "Ground Clearance");
                 DrawProperty("dropDelay", "Drop Delay");
+                DrawProperty("forwardTravelDistance", "Forward Lead Distance");
                 DrawProperty("impactZone", "Impact Zone");
                 DrawProperty("impactShape", "Impact Shape");
                 SerializedProperty shape = serializedObject.FindProperty("impactShape");

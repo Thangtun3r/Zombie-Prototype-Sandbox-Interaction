@@ -14,6 +14,7 @@ namespace EnvironmentInteraction.Authoring.Editor
             public bool interactionEnabled = true;
             public bool isOneUse = true;
             [Min(0f)] public float dropDelay;
+            [Min(0f)] public float forwardTravelDistance = 1.5f;
             [Min(0.05f)] public float fallDuration = 0.45f;
             public EnvironmentalAreaShape impactShape = EnvironmentalAreaShape.Box;
             [Min(0.05f)] public float impactRadius = 2f;
@@ -111,7 +112,7 @@ namespace EnvironmentInteraction.Authoring.Editor
 
         private static readonly string[] DropProperties =
         {
-            "interactionEnabled", "isOneUse", "dropDelay", "fallDuration", "impactShape",
+            "interactionEnabled", "isOneUse", "dropDelay", "forwardTravelDistance", "fallDuration", "impactShape",
             "impactRadius", "impactBoxSize", "becomesNavMeshObstacle", "impactDamage", "impactForce", "affectedLayers",
             "objectColor", "triggerColor", "spawnImpactParticles", "impactParticleColor",
             "impactParticleAmount", "impactPulseColor"

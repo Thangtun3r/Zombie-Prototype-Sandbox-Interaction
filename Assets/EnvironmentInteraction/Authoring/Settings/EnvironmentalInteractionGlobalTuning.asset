@@ -16,6 +16,7 @@ MonoBehaviour:
     interactionEnabled: 1
     isOneUse: 1
     dropDelay: 0
+    forwardTravelDistance: 1.5
     fallDuration: 0.45
     impactShape: 1
     impactRadius: 2

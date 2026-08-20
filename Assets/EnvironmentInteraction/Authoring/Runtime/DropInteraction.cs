@@ -10,6 +10,7 @@ namespace EnvironmentInteraction.Authoring
     {
         [SerializeField] private Transform dropObject;
         [SerializeField, Min(0f)] private float dropDelay;
+        [SerializeField, Min(0f)] private float forwardTravelDistance = 1.5f;
         [SerializeField] private Transform impactZone;
         [SerializeField] private LayerMask floorLayers = ~0;
         [SerializeField, Min(0f)] private float surfaceClearance;
@@ -30,6 +31,7 @@ namespace EnvironmentInteraction.Authoring
         public override EnvironmentalInteractionType Type => EnvironmentalInteractionType.Drop;
         public Transform DropObject => dropObject;
         public float DropDelay => dropDelay;
+        public float ForwardTravelDistance => forwardTravelDistance;
         public Transform ImpactZone => impactZone;
         public LayerMask FloorLayers => floorLayers;
         public EnvironmentalAreaShape ImpactShape => impactShape;
@@ -59,6 +61,7 @@ namespace EnvironmentInteraction.Authoring
         {
             base.OnValidate();
             dropDelay = Mathf.Max(0f, dropDelay);
+            forwardTravelDistance = Mathf.Max(0f, forwardTravelDistance);
             surfaceClearance = Mathf.Max(0f, surfaceClearance);
             impactRadius = Mathf.Max(0.05f, impactRadius);
             impactBoxSize = MaxVector(impactBoxSize, 0.05f);
@@ -90,7 +93,7 @@ namespace EnvironmentInteraction.Authoring
 
         public bool TryResolveImpactPosition(out Vector3 position)
         {
-            Vector3 origin = DropStartPosition;
+            Vector3 origin = DropStartPosition + GetForwardDirection() * forwardTravelDistance;
             RaycastHit[] hits = Physics.RaycastAll(
                 origin,
                 Vector3.down,
@@ -113,6 +116,13 @@ namespace EnvironmentInteraction.Authoring
 
             position = origin;
             return false;
+        }
+
+        private Vector3 GetForwardDirection()
+        {
+            Vector3 forward = dropObject != null ? dropObject.forward : transform.forward;
+            forward = Vector3.ProjectOnPlane(forward, Vector3.up);
+            return forward.sqrMagnitude > 0.0001f ? forward.normalized : Vector3.forward;
         }
 
         public void SetImpactRadius(float radius)

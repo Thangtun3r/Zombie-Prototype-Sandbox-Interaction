@@ -119,6 +119,7 @@ namespace EnvironmentInteraction.Authoring.Editor
             if (type == EnvironmentalInteractionType.Drop)
             {
                 DrawProperty(group, "dropDelay", "Trigger Delay (seconds)");
+                DrawProperty(group, "forwardTravelDistance", "Forward Lead Distance");
                 DrawProperty(group, "fallDuration", "Fall Time (seconds)");
                 DrawAreaShape(group, "impactShape", "impactRadius", "impactBoxSize", "Smash");
                 if ((EnvironmentalAreaShape)group.FindPropertyRelative("impactShape").enumValueIndex == EnvironmentalAreaShape.Box)

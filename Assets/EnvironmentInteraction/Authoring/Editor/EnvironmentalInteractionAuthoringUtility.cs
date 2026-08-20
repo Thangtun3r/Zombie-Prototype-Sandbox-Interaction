@@ -166,6 +166,7 @@ namespace EnvironmentInteraction.Authoring.Editor
             landedObstacle.enabled = false;
 
             EnvironmentalTrigger trigger = EnsureTriggerSetup(triggerObject);
+            ConfigureDropTriggerCollider(trigger);
             DropInteraction interaction = root.AddComponent<DropInteraction>();
             interaction.ConfigureCommon("Drop Interaction", trigger);
             interaction.ConfigureVisuals(
@@ -267,6 +268,7 @@ namespace EnvironmentInteraction.Authoring.Editor
                 drop.DropObject != null &&
                 drop.DropObject.name == "DropObject")
             {
+                ConfigureDropTriggerCollider(interaction.Trigger);
                 interaction.ConfigureVisuals(
                     new[] { drop.DropObject.GetComponent<Renderer>() },
                     DropContainerColor,
@@ -361,6 +363,16 @@ namespace EnvironmentInteraction.Authoring.Editor
             }
 
             return areaVisualChanged;
+        }
+
+        private static void ConfigureDropTriggerCollider(EnvironmentalTrigger trigger)
+        {
+            if (trigger == null || !(trigger.TriggerCollider is CapsuleCollider capsule))
+                return;
+
+            capsule.radius = 1.5f;
+            capsule.height = 6f;
+            EditorUtility.SetDirty(capsule);
         }
 
         public static bool EnsureGeneratedAreaVisual(EnvironmentalInteractionBase interaction)
